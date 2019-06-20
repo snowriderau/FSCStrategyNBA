@@ -6,7 +6,7 @@
         <name>ApexClass</name>
     </types>
     <types>
-        <members>AutoOffer</members>
+        <members>INS_Offer</members>
         <name>RecommendationStrategy</name>
     </types>
     <version>46.0</version>
