@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecommendationStrategy xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionContext>
+        <action>IDO_NBA_classExample</action>
+        <argument>
+            <name>recordId</name>
+            <value>$Record.Id</value>
+        </argument>
+        <description>Connect to an Apex class and send an ID to the system, Note teh syntax for passing in the Id</description>
+        <label>NBAConnection</label>
+        <name>NBAConnection</name>
+        <type>apex</type>
+    </actionContext>
+    <contextRecordType>Account</contextRecordType>
+    <description>NBA Auto Offer</description>
+    <filter>
+        <childNode>Customer_Escalated_Case</childNode>
+        <description>See if the Account record has any escalated cases</description>
+        <label>Has Escalated Cases</label>
+        <name>Has_Escalated_Cases</name>
+        <expression>$NBAConnection.numCases &gt; 0</expression>
+    </filter>
+    <filter>
+        <childNode>Life_Promotion</childNode>
+        <childNode>LoadAutoOffers</childNode>
+        <label>Multi Line Offers</label>
+        <name>MultilineOffers</name>
+        <expression>$Record.Likelihood_to_Multi_Line__c &gt; 70</expression>
+    </filter>
+    <if>
+        <childNode>Discount20</childNode>
+        <description>If customer is Platinum then go offer 20%</description>
+        <label>CustomerTier</label>
+        <name>CustomerTier</name>
+        <childNodeExpression>
+            <childName>Discount20</childName>
+            <expression>ISPICKVAL($Record.Cust360_Loyalty__pc, &quot;Platinum&quot;)</expression>
+        </childNodeExpression>
+        <onlyFirstMatch>false</onlyFirstMatch>
+    </if>
+    <label>AutoOfffer</label>
+    <mutuallyExclusive>
+        <childNode>Has_Escalated_Cases</childNode>
+        <childNode>MultilineOffers</childNode>
+        <description>If their are escalaetd cases then ignore, offers,</description>
+        <label>Ignore offers if case</label>
+        <name>Ignore_offers_if_case</name>
+    </mutuallyExclusive>
+    <recommendationLoad>
+        <label>Customer Escalated Case</label>
+        <name>Customer_Escalated_Case</name>
+        <condition>
+            <field>Recommendation.Description</field>
+            <operator>CONTAINS</operator>
+            <value>
+                <type>TEXT</type>
+                <value>escalated case</value>
+            </value>
+        </condition>
+        <conditionLogic>and</conditionLogic>
+    </recommendationLoad>
+    <recommendationLoad>
+        <label>Life Insurance Promotion</label>
+        <name>Life_Promotion</name>
+        <condition>
+            <field>Recommendation.Description</field>
+            <operator>CONTAINS</operator>
+            <value>
+                <type>TEXT</type>
+                <value>Life Insurance</value>
+            </value>
+        </condition>
+        <conditionLogic>and</conditionLogic>
+    </recommendationLoad>
+    <recommendationLoad>
+        <label>LoadAutoOffers</label>
+        <name>LoadAutoOffers</name>
+        <condition>
+            <field>Recommendation.Name</field>
+            <operator>CONTAINS</operator>
+            <value>
+                <type>TEXT</type>
+                <value>Auto</value>
+            </value>
+        </condition>
+        <conditionLogic>and</conditionLogic>
+    </recommendationLoad>
+    <recommendationLoad>
+        <label>Discount20</label>
+        <name>Discount20</name>
+        <condition>
+            <field>Recommendation.Name</field>
+            <operator>CONTAINS</operator>
+            <value>
+                <type>TEXT</type>
+                <value>Discount 20</value>
+            </value>
+        </condition>
+        <conditionLogic>and</conditionLogic>
+    </recommendationLoad>
+    <union>
+        <childNode>Ignore_offers_if_case</childNode>
+        <childNode>CustomerTier</childNode>
+        <description>The root</description>
+        <label>WinningPropositions</label>
+        <name>WinningPropositions</name>
+    </union>
+</RecommendationStrategy>
